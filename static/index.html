@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Datavox | Intelligent Agentic Data Assistant</title>
+  <meta name="description" content="Query your database in natural language using the Datavox LangGraph Agentic Pipeline, upload custom datasets, and explore database schemas.">
+  <link rel="stylesheet" href="/static/css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%236366f1%22 stroke-width=%222%22><path d=%22M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z%22/></svg>">
+</head>
+<body>
+
+  <!-- App Header -->
+  <header class="app-header">
+    <div class="brand-wrapper">
+      <div class="logo-orb" aria-hidden="true">
+        <svg viewBox="0 0 24 24">
+          <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" />
+        </svg>
+      </div>
+      <div>
+        <h1 class="brand-title">Datavox</h1>
+      </div>
+      <span class="brand-tag">LangGraph AI</span>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <nav class="nav-tabs" aria-label="Main Navigation">
+      <button class="nav-tab-btn active" id="tab-btn-chat" onclick="switchTab('chat')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+        </svg>
+        Query Assistant
+      </button>
+      <button class="nav-tab-btn" id="tab-btn-data" onclick="switchTab('data')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2 2v-4"></path>
+          <polyline points="17 8 12 3 7 8"></polyline>
+          <line x1="12" y1="3" x2="12" y2="15"></line>
+        </svg>
+        Add Data (Upload)
+      </button>
+      <button class="nav-tab-btn" id="tab-btn-explorer" onclick="switchTab('explorer')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
+          <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path>
+          <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>
+        </svg>
+        Database Explorer
+      </button>
+    </nav>
+
+    <!-- Runtime Status & Settings -->
+    <div class="system-status">
+      <div class="status-badge" id="system-status-badge">
+        <span class="status-dot"></span>
+        <span id="status-model-text">Loading model...</span>
+      </div>
+      <button class="settings-btn" id="btn-open-settings" onclick="openSettingsModal()" title="API Key Settings">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+        </svg>
+        <span>API Key</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="main-content">
+
+    <!-- ====================================================================
+         TAB 1: Assistant & Query Studio
+         ==================================================================== -->
+    <section class="tab-pane active" id="tab-pane-chat" aria-label="Query Studio Panel">
+      <div class="chat-container">
+
+        <!-- Message Stream -->
+        <div class="chat-messages" id="chat-messages">
+          <!-- Hero Banner -->
+          <div class="welcome-hero" id="welcome-hero">
+            <div class="hero-icon">
+              <svg viewBox="0 0 24 24">
+                <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" />
+              </svg>
+            </div>
+            <h2>Ask Anything About Your Data</h2>
+            <p>Datavox is an agentic SQL pipeline powered by LangGraph. Ask questions in plain English—Datavox will inspect the schema, generate validated SQL, execute it against your database, and summarize the key insights.</p>
+
+            <div class="quick-prompts">
+              <button class="prompt-chip" onclick="useQuickPrompt('What is the total revenue by region?')">
+                Total revenue by region
+              </button>
+              <button class="prompt-chip" onclick="useQuickPrompt('Show top 5 customers and their regions')">
+                Top 5 customers
+              </button>
+              <button class="prompt-chip" onclick="useQuickPrompt('Which products have stock quantity less than 50?')">
+                Low stock products
+              </button>
+              <button class="prompt-chip" onclick="useQuickPrompt('List completed orders with total amounts')">
+                Completed orders
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Chat Input Bar -->
+        <div class="chat-input-wrapper">
+          <button class="reset-session-btn" title="Reset Session History" onclick="resetSession()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="1 4 1 10 7 10"></polyline>
+              <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+            </svg>
+          </button>
+          <div class="chat-input-box">
+            <input 
+              type="text" 
+              id="user-query-input" 
+              class="chat-input" 
+              placeholder="Ask a question about your database (e.g. 'What is our best-selling product?')..."
+              autocomplete="off"
+            />
+          </div>
+          <button class="send-btn" id="send-query-btn" title="Send Query" onclick="submitQuery()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <line x1="22" y1="2" x2="11" y2="13"></line>
+              <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+            </svg>
+          </button>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         TAB 2: Add Data / Ingestion Studio
+         ==================================================================== -->
+    <section class="tab-pane" id="tab-pane-data" aria-label="Add Data Panel">
+      <div class="data-studio-grid">
+        
+        <!-- Left: Upload Card -->
+        <div class="glass-card">
+          <h2 class="card-title">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2 2v-4"></path>
+              <polyline points="17 8 12 3 7 8"></polyline>
+              <line x1="12" y1="3" x2="12" y2="15"></line>
+            </svg>
+            Ingest Multiple Related Tables
+          </h2>
+          <p class="card-subtitle">Upload one or more CSV/JSON files. Datavox automatically infers column types, detects foreign key relationships between tables, and updates the AI schema model for accurate cross-table JOINs.</p>
+
+          <!-- Dropzone -->
+          <div class="dropzone" id="file-dropzone" onclick="document.getElementById('file-input').click()">
+            <svg class="drop-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="12" y1="18" x2="12" y2="12"></line>
+              <line x1="9" y1="15" x2="15" y2="15"></line>
+            </svg>
+            <div class="drop-text" id="drop-text">Drag & drop multiple CSV or JSON files here, or browse</div>
+            <div class="drop-subtext">Select multiple related tables (e.g. users.csv, orders.csv, items.csv)</div>
+            <input type="file" id="file-input" style="display: none" accept=".csv,.json" multiple onchange="handleFileSelected(event)" />
+          </div>
+
+          <!-- Queued Files Section -->
+          <div id="queued-files-section" style="display: none; margin-top: 18px;">
+            <div style="font-size: 0.8rem; font-weight: 700; text-transform: uppercase; color: var(--text-subtle);">Queued Tables for Ingestion (<span id="queued-files-count">0</span>)</div>
+            <div class="files-queue-list" id="files-queue-list"></div>
+          </div>
+
+          <!-- Detected Relationships Box -->
+          <div class="relationships-box" id="detected-relationships-box" style="display: none;">
+            <div class="relationships-title">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+              </svg>
+              Detected Cross-Table Relationships
+            </div>
+            <div class="relationship-links-grid" id="detected-relationships-list"></div>
+          </div>
+
+          <!-- Clear Sample Option Row -->
+          <div style="margin-top: 14px; padding: 10px 14px; background: rgba(255,255,255,0.03); border: 1px solid var(--border-glass); border-radius: 8px; display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 0.84rem; color: var(--text-secondary); user-select: none;">
+              <input type="checkbox" id="clear-sample-on-upload" checked style="accent-color: #6366f1; width: 16px; height: 16px; cursor: pointer;">
+              <span><strong>Remove sample testing data</strong> (clears demo tables so only your custom tables exist)</span>
+            </label>
+            <button type="button" onclick="clearSampleDataManually()" class="sidebar-icon-btn danger" style="padding: 5px 12px; font-size: 0.78rem; font-weight: 600; gap: 6px;" title="Remove sample tables right now">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="3 6 5 6 21 6"></polyline>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+              </svg>
+              <span>Clear Sample Data</span>
+            </button>
+          </div>
+
+          <button class="btn-primary" id="btn-submit-upload" onclick="uploadQueuedDatasets()" disabled style="margin-top: 12px;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M5 12h14"></path>
+              <path d="M12 5l7 7-7 7"></path>
+            </svg>
+            Upload & Ingest All Tables with Relationships
+          </button>
+
+          <div id="upload-alert"></div>
+        </div>
+
+        <!-- Right: Preview Card -->
+        <div class="glass-card">
+          <h2 class="card-title">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+            Dataset & Schema Preview
+          </h2>
+          <p class="card-subtitle" id="preview-subtitle">Select files on the left to preview their schema columns, record counts, and detected foreign keys before ingesting.</p>
+
+          <div class="table-responsive" id="preview-table-container">
+            <div style="padding: 40px; text-align: center; color: var(--text-subtle);">
+              No files queued for preview yet.
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         TAB 3: Database & Schema Explorer
+         ==================================================================== -->
+    <section class="tab-pane" id="tab-pane-explorer" aria-label="Database Explorer Panel">
+      <div class="explorer-layout">
+
+        <!-- Left: Table Navigation -->
+        <aside class="table-sidebar">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <span class="sidebar-title">Tables</span>
+            <div style="display: flex; gap: 4px; align-items: center;">
+              <button onclick="clearSampleDataManually()" class="sidebar-icon-btn danger" title="Clear Sample / Test Tables">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="3 6 5 6 21 6"></polyline>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>
+              </button>
+              <button onclick="resetSampleDataManually()" class="sidebar-icon-btn" title="Restore Demo Tables">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="1 4 1 10 7 10"></polyline>
+                  <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+                </svg>
+              </button>
+              <button onclick="loadExplorerTables()" class="sidebar-icon-btn" title="Refresh Table List">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M23 4v6h-6"></path>
+                  <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+          <div id="explorer-table-list">
+            <div style="color: var(--text-subtle); font-size: 0.82rem;">Loading tables...</div>
+          </div>
+        </aside>
+
+        <!-- Right: Active Table Viewer -->
+        <div class="explorer-viewer">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div>
+              <h2 class="card-title" id="explorer-active-table-name">Select a Table</h2>
+              <div class="card-subtitle" id="explorer-active-table-info" style="margin-bottom: 0;">Click any table from the sidebar to inspect its schema, live rows, and relationship links.</div>
+            </div>
+            <div id="explorer-row-count-badge" class="table-nav-badge" style="display: none;"></div>
+          </div>
+
+          <!-- Active Table Foreign Key Links -->
+          <div id="explorer-table-relationships-box" style="display: none;">
+            <div style="font-size: 0.76rem; font-weight: 700; text-transform: uppercase; color: #c4b5fd; margin-bottom: 8px;">Foreign Key Joins & Links</div>
+            <div class="relationship-links-grid" id="explorer-active-table-rels"></div>
+          </div>
+
+          <!-- Column Schema Tags -->
+          <div>
+            <div style="font-size: 0.76rem; font-weight: 700; text-transform: uppercase; color: var(--text-subtle); margin-bottom: 8px;">Schema Columns</div>
+            <div class="schema-pill-list" id="explorer-schema-tags">
+              <span style="color: var(--text-subtle); font-size: 0.82rem;">Select a table to view columns</span>
+            </div>
+          </div>
+
+          <!-- Live Rows Data Table -->
+          <div class="table-responsive" style="flex: 1;" id="explorer-data-table-container">
+            <div style="padding: 40px; text-align: center; color: var(--text-subtle);">
+              No table selected.
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Settings Modal -->
+  <div class="modal-overlay" id="settings-modal" onclick="closeSettingsModal(event)">
+    <div class="modal-card" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div class="hero-icon" style="width: 36px; height: 36px; margin: 0; border-radius: 10px;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="3"></circle>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+            </svg>
+          </div>
+          <h3 style="font-size: 1.1rem; font-weight: 700; color: white;">API Key & Provider Settings</h3>
+        </div>
+        <button class="remove-file-btn" onclick="closeSettingsModal()" title="Close">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <p style="color: var(--text-muted); font-size: 0.85rem; line-height: 1.5; margin: 12px 0 16px 0;">
+        Add your own API key to query Datavox. Your key is stored <strong>locally in your browser</strong> and sent directly with each query.
+      </p>
+
+      <div class="form-group" style="margin-top: 10px;">
+        <label class="form-label" for="setting-provider">LLM Provider</label>
+        <select id="setting-provider" class="form-input" onchange="handleProviderChange()">
+          <option value="gemini">Google Gemini (Recommended - Free Tier Available)</option>
+          <option value="openai">OpenAI (GPT-4o / GPT-4o-mini)</option>
+        </select>
+      </div>
+
+      <div class="form-group" style="margin-top: 12px;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <label class="form-label" for="setting-api-key">API Key</label>
+          <a id="setting-key-help-link" href="https://aistudio.google.com/app/apikey" target="_blank" style="color: #a5b4fc; font-size: 0.78rem; text-decoration: none;">Get a free Gemini API Key ↗</a>
+        </div>
+        <div style="position: relative; display: flex; align-items: center;">
+          <input type="password" id="setting-api-key" class="form-input" style="width: 100%; padding-right: 44px;" placeholder="Paste your API key here..." />
+          <button type="button" onclick="toggleKeyVisibility()" style="position: absolute; right: 10px; background: none; border: none; color: var(--text-muted); cursor: pointer; display: flex; align-items: center;" title="Show/Hide Key">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="form-group" style="margin-top: 12px;">
+        <label class="form-label" for="setting-model-name">Model Name (Optional)</label>
+        <input type="text" id="setting-model-name" class="form-input" placeholder="Default: gemini-3.6-flash or gpt-4o-mini" />
+      </div>
+
+      <div id="settings-save-alert" style="margin-top: 12px;"></div>
+
+      <div style="display: flex; gap: 10px; margin-top: 20px;">
+        <button type="button" class="btn-primary" style="margin: 0; flex: 1;" onclick="saveUserSettings()">
+          Save Credentials
+        </button>
+        <button type="button" class="reset-session-btn" style="width: auto; padding: 0 16px; border-radius: var(--radius-sm); white-space: nowrap;" onclick="clearUserSettings()" title="Clear your stored key and fall back to the server's configured key">
+          Clear (Use Server Key)
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/js/app.js"></script>
+</body>
+</html>
