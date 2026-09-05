@@ -1,7 +1,7 @@
 from typing import TypedDict, Optional, List
 
 #define the Agent class
-class NovaState(TypedDict):
+class DatavoxState(TypedDict):
     # use this to save each users session
     session_id : str                    # UUID (Universally Unique Identifiers)
 
