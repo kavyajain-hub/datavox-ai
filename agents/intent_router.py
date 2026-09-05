@@ -1,47 +1,55 @@
-from graph.state import NovaState
-from langchain_openai import ChatOpenAI
 import json
+from graph.state import DatavoxState
+from config.llm import get_llm
 
-# initialize LLM
-llm = ChatOpenAI(model="gpt-4o",temperature=0)
 
+def intent_router(state: DatavoxState) -> DatavoxState:
+    """Classify user query intent into sql_agent or need_clarification with confidence score."""
+    user_query = state.get('user_query', '')
 
-# define the router node
-def intent_router(state: NovaState)-> NovaState:
-    user_query = state['user_query']
-
-    # define prompt
     prompt = f"""
-            you are an analyzer which identifies the intent of the users query and classifies it into 2 buckets : sql_agent and need_clarification
-            and give the confidence score on your intent classification
+        You are an analyzer that identifies the intent of the user's query and classifies it into 2 buckets:
+        1. "sql_agent": The user is asking a data/analytical question that can be answered with a database query.
+        2. "need_clarification": The query is ambiguous, missing vital parameters, or not understandable.
 
-            "user query":{user_query}
+        User query: {user_query}
 
-            output format: {{"intent":"identified_intent",
-                            "confidence_score:"identified_intent_confidence"}}
-        """
-    response = llm.invoke(prompt)
+        Output strictly in JSON format:
+        {{
+            "intent": "sql_agent" or "need_clarification",
+            "confidence_score": 0.95
+        }}
+    """
     try:
-        parsed=json.loads(response.content)
-        intent = parsed["intent"]
-        confidence_score = parsed["confidence_score"]
+        llm = get_llm(temperature=0)
+        response = llm.invoke(prompt)
+        content = response.content.strip()
+        if "```json" in content:
+            content = content.split("```json")[1].split("```")[0].strip()
+        elif "```" in content:
+            content = content.split("```")[1].split("```")[0].strip()
+
+        parsed = json.loads(content)
+        intent = parsed.get("intent", "need_clarification")
+        confidence_score = float(parsed.get("confidence_score", 0.0))
+
+        is_ambiguous = (intent == "need_clarification")
 
         return {
             **state,
-            "is_user_query_ambigous":True if intent=="need_clarification" else False,
-            "current_node":"intent_router",
-            "node_trace":state["node_trace"]+['intent_router'],
-            "intent_confidence_score":confidence_score,
-            "intent_router_error":None
+            "is_user_query_ambigous": is_ambiguous,
+            "current_node": "intent_router",
+            "node_trace": state.get("node_trace", []) + ['intent_router'],
+            "intent_confidence_score": confidence_score,
+            "intent_router_error": None
         }
-    
+
     except Exception as e:
         return {
             **state,
-            "is_user_query_ambigous":True,
-            "current_node":"intent_router",
-            "node_trace":state["node_trace"]+['intent_router'],
-            "intent_confidence_score":0.0,
-            "intent_router_error":str(e)
+            "is_user_query_ambigous": True,
+            "current_node": "intent_router",
+            "node_trace": state.get("node_trace", []) + ['intent_router'],
+            "intent_confidence_score": 0.0,
+            "intent_router_error": str(e)
         }
-        
