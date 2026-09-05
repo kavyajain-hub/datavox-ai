@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: datavox
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt && python scripts/init_sample_db.py
+    startCommand: uvicorn server:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.8
+      - key: LLM_PROVIDER
+        value: gemini
+      - key: DATABASE_URL
+        value: sqlite:///./datavox_sample.db
+      - key: ALLOWED_ORIGINS
+        value: https://datavox.onrender.com,http://localhost:8000
