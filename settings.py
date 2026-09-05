@@ -1,1 +1,4 @@
-checkpoint_db_url : str
+# Backwards compatibility export
+from config.settings import Settings, get_settings
+
+__all__ = ["Settings", "get_settings"]
