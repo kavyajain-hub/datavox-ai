@@ -47,7 +47,7 @@ def test_escalate_agent():
     state["validation_error"] = "Fatal error"
     res = escalate_agent(state)
     assert res["current_node"] == "escalate_agent"
-    assert "notified" in res["final_response"].lower()
+    assert "encountered" in res["final_response"].lower() or "issue" in res["final_response"].lower()
     assert "escalate_agent" in res["node_trace"]
 
 

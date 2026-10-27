@@ -60,8 +60,8 @@ graph LR
 
 ```bash
 # Clone the repository
-git clone https://github.com/sunil276/langgraph-project.git
-cd langgraph-project
+git clone https://github.com/kavyajain-hub/datavox-ai.git
+cd datavox-ai
 
 # Create virtual environment
 python -m venv .venv

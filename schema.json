@@ -1,7 +1,42 @@
 [
   {
-    "table": "sample_superstore",
-    "description": "Uploaded dataset 'sample_superstore' from file Sample - Superstore.csv.",
-    "columns": "id (INTEGER PK), row_id (INTEGER), order_id (TEXT), order_date (TEXT), ship_date (TEXT), ship_mode (TEXT), customer_id (TEXT), customer_name (TEXT), segment (TEXT), country (TEXT), city (TEXT), state (TEXT), postal_code (INTEGER), region (TEXT), product_id (TEXT), category (TEXT), sub_category (TEXT), product_name (TEXT), sales (REAL), quantity (INTEGER), discount (REAL), profit (REAL)"
+    "table": "customers",
+    "description": "Customer profiles, demographic info, and sign-up dates. Referenced by: orders(customer_id)",
+    "columns": "customer_id (INT, PK), name (VARCHAR), email (VARCHAR), region (VARCHAR), created_at (TIMESTAMP)"
+  },
+  {
+    "table": "orders",
+    "description": "Customer order records, order status, total amounts, and dates. Relationships: [customer_id references customers(customer_id)]",
+    "columns": "order_id (INT, PK), customer_id (INT, FK -> customers.customer_id), order_date (DATE), total_amount (DECIMAL), status (VARCHAR)"
+  },
+  {
+    "table": "order_items",
+    "description": "Line items for each order. Relationships: [order_id references orders(order_id), product_id references products(product_id)]",
+    "columns": "item_id (INT, PK), order_id (INT, FK -> orders.order_id), product_id (INT, FK -> products.product_id), quantity (INT), unit_price (DECIMAL)"
+  },
+  {
+    "table": "products",
+    "description": "Product catalog with categories, unit prices, and stock levels. Referenced by: order_items(product_id)",
+    "columns": "product_id (INT, PK), product_name (VARCHAR), category (VARCHAR), unit_price (DECIMAL), stock_quantity (INT)"
+  },
+  {
+    "table": "regional_sales",
+    "description": "Aggregated daily sales numbers grouped by geographic region",
+    "columns": "sales_id (INT, PK), region (VARCHAR), sales_date (DATE), total_revenue (DECIMAL), units_sold (INT)"
+  },
+  {
+    "table": "test_campaigns",
+    "description": "Marketing test campaign metrics",
+    "columns": "id (INTEGER PK), campaign_name (TEXT), channel (TEXT), spend (REAL), clicks (INTEGER), conversions (INTEGER)"
+  },
+  {
+    "table": "test_authors",
+    "description": "Uploaded dataset 'test_authors' from file test_authors.csv. Referenced by: [test_books(author_id)].",
+    "columns": "id (INTEGER PK), author_id (INTEGER), author_name (TEXT), country (TEXT)"
+  },
+  {
+    "table": "test_books",
+    "description": "Uploaded dataset 'test_books' from file test_books.csv. Relationships: [author_id -> test_authors(author_id)].",
+    "columns": "id (INTEGER PK), book_id (INTEGER), author_id (INTEGER, FK -> test_authors.author_id), title (TEXT), genre (TEXT)"
   }
 ]

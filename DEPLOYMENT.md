@@ -31,7 +31,7 @@ git push origin main
 #### Option A: One-Click Blueprint (Recommended)
 1. Log in to [Render Dashboard](https://dashboard.render.com).
 2. Click **New +** in the top right and select **Blueprint**.
-3. Connect your GitHub repository: `https://github.com/sunil276/langgraph-project.git`.
+3. Connect your GitHub repository: `https://github.com/kavyajain-hub/datavox-ai.git`.
 4. Render will automatically detect [`render.yaml`](./render.yaml).
 5. Click **Apply**.
 6. Render will automatically build the container and deploy your live app!

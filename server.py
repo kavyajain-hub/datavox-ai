@@ -43,19 +43,26 @@ except ImportError:
     limiter = None
     logger.warning("slowapi not installed — rate limiting disabled. Run: pip install slowapi")
 
-# --- CORS (restricted in production) ---
-ALLOWED_ORIGINS = os.getenv(
-    "ALLOWED_ORIGINS",
-    "http://localhost:8000,http://127.0.0.1:8000"
-).split(",")
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=ALLOWED_ORIGINS,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# --- CORS (restricted in production, supports wildcard or explicit origins) ---
+raw_origins = os.getenv("ALLOWED_ORIGINS", "*").strip()
+if raw_origins == "*":
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_credentials=False,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+else:
+    allowed_list = [o.strip() for o in raw_origins.split(",") if o.strip()]
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=allowed_list,
+        allow_origin_regex=r"^https:\/\/.*\.onrender\.com$",
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 
 
 # --- Middleware: reset context vars after each request ---
