@@ -30,6 +30,16 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI(title="Datavox", version="1.1.0")
 
+
+@app.on_event("startup")
+def startup_event():
+    """Ensure sample tables are populated on server boot."""
+    try:
+        create_and_seed_database()
+        logger.info("Database verification and seeding completed on startup.")
+    except Exception as e:
+        logger.warning(f"Database auto-seeding on startup encountered: {e}")
+
 # --- Rate Limiting ---
 try:
     from slowapi import Limiter, _rate_limit_exceeded_handler
