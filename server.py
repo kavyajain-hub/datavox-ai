@@ -21,6 +21,8 @@ from services.data_service import (
 )
 from db.init_db import create_and_seed_database
 
+from contextlib import asynccontextmanager
+
 # Structured JSON logging
 logging.basicConfig(
     format='{"time":"%(asctime)s","level":"%(levelname)s","module":"%(module)s","message":"%(message)s"}',
@@ -28,17 +30,19 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-app = FastAPI(title="Datavox", version="1.1.0")
 
-
-@app.on_event("startup")
-def startup_event():
+@asynccontextmanager
+async def lifespan(app: FastAPI):
     """Ensure sample tables are populated on server boot."""
     try:
         create_and_seed_database()
         logger.info("Database verification and seeding completed on startup.")
     except Exception as e:
         logger.warning(f"Database auto-seeding on startup encountered: {e}")
+    yield
+
+
+app = FastAPI(title="Datavox", version="1.1.0", lifespan=lifespan)
 
 # --- Rate Limiting ---
 try:
@@ -100,8 +104,9 @@ class ChatRequest(BaseModel):
     session_id: Optional[str] = None
 
 
-# --- Health check ---
-@app.get("/health")
+# --- Health checks for Render / Kubernetes / Load balancers ---
+@app.api_route("/health", methods=["GET", "HEAD"])
+@app.api_route("/healthz", methods=["GET", "HEAD"])
 def health_check():
     """Lightweight health check for Render / load balancer monitoring."""
     return {"status": "ok"}
@@ -298,7 +303,7 @@ if not os.path.exists(static_dir):
 app.mount("/static", StaticFiles(directory=static_dir), name="static")
 
 
-@app.get("/")
+@app.api_route("/", methods=["GET", "HEAD"])
 def serve_index():
     index_file = os.path.join(static_dir, "index.html")
     if os.path.exists(index_file):

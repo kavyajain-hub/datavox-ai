@@ -133,3 +133,19 @@ def test_api_upload_multiple_related_datasets():
     assert len(author_rels) > 0
     assert author_rels[0]["from_column"] == "author_id"
 
+
+def test_health_endpoints():
+    r1 = client.get("/health")
+    assert r1.status_code == 200
+    assert r1.json() == {"status": "ok"}
+
+    r2 = client.get("/healthz")
+    assert r2.status_code == 200
+    assert r2.json() == {"status": "ok"}
+
+    r3 = client.head("/healthz")
+    assert r3.status_code == 200
+
+    r4 = client.head("/")
+    assert r4.status_code in (200, 404)  # 200 if static index exists
+
